@@ -1,366 +1,224 @@
-# Construcción backend con Python en Docker
+# Data Extractor
 
-## 1. Preparar tu entorno de desarrollo
+## Descripción
 
-### 1.1. Crea una carpeta para tu proyecto
+Este proyecto es una api construida con **FastAPI** que incluye dos funcionalidades principales:
 
-```bash
-mkdir data-extractor && cd data-extractor
-```
+1. **Procesamiento OCR**: Extrae texto de imágenes subidas utilizando Tesseract.
+2. **Web Scraping**: Realiza scraping y extrae datos (títulos, párrafos, imágenes, enlaces y tablas) de una URL proporcionada.
 
-Empezamos construyendo un POST para extraer texto de una imagen con Tesseract.
+La aplicación está diseñada para ser modular, escalable y fácil de mantener. Incluye manejo de errores y logging para facilitar la depuración y el monitoreo.
 
-### 1.2. Estructura del proyecto: Extraer texto de una imagen (Tesseract)
+Quieres ver cómo fue el incio del proyecto? ve al archivo [DEVELOPMENT.md](DEVELOPMENT.md)
 
-```python
-data-extractor/
-  ├── Dockerfile
-  ├── docker-compose.yml  # Opcional (Si lo usaremos)
-  ├── requirements.txt
-  ├── main.py
-  └── utils/
-      ├── image_processing.py
-      ├── ocr.py
-      └── __init__.py
-```
+## Índice
 
-`Dockerfile`: contiene instrucciones para crear una imagen de Docker con todas las dependencias necesarias para ejecutar tu aplicación.
+1. [Descripción](#descripción)
+2. [Funcionalidades](#funcionalidades)
+3. [Tecnologías Utilizadas](#tecnologías-utilizadas)
+4. [Requisitos](#requisitos)
+5. [Configuración y Uso](#configuración-y-uso)
+6. [Documentación de la API](#documentación-de-la-api)
+   - [OCR: /extract-text/ (POST)](#ocr-extract-text-post)
+   - [Scraping: /scrape/ (GET)](#scraping-scrape-get)
+7. [¿Por qué usar Python en lugar de NestJS?](#por-qué-usar-python-en-lugar-de-nestjs)
+8. [Contribuciones](#contribuciones)
+9. [Licencia](#licencia)
 
-```python
-# Usa una imagen base de Python
-FROM python:3.9-slim
+## Funcionalidades
 
-# Instala dependencias del sistema necesarias para OpenCV y Tesseract
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    libsm6 libxext6 libxrender-dev \
-    && apt-get clean
+[Volver arriba](#)
 
-# Crea un directorio de trabajo en el contenedor
-WORKDIR /app
+- **OCR (Reconocimiento Óptico de Caracteres)**:
 
-# Copia los archivos de tu proyecto al contenedor
-COPY . /app
+  - Soporte para preprocesamiento de imágenes para mejorar los resultados del OCR.
+  - Extracción de texto en idiomas español e inglés.
+  - Proporciona datos estructurados a partir de la extracción de texto.
 
-# Instala las dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt
+- **Web Scraping**:
 
-# Expone el puerto donde correrá FastAPI
-EXPOSE 8000
+  - Extrae contenido estructurado de páginas web, incluyendo:
+    - Títulos
+    - Párrafos
+    - Imágenes
+    - Enlaces
+    - Tablas
+  - Manejo de URLs inválidas y errores de forma controlada.
 
-# Comando para ejecutar el servidor
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+- **Manejo de Errores**:
 
-`docker-compose.yml`: es un archivo opcional que define y ejecuta aplicaciones Docker de múltiples contenedores.
+  - Excepciones personalizadas para los procesos de OCR y scraping.
+  - Respuestas HTTP claras para diferentes casos de error.
 
-```python
-version: "3.8"
-services:
-  data-extractor:
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    environment:
-      - PYTHONUNBUFFERED=1
-```
+- **Logging**:
+  - Registra todas las acciones y errores para facilitar la depuración y el monitoreo.
 
-`requirements.txt`: lista de dependencias de Python que se instalarán en la imagen de Docker.
+---
 
-```python
-fastapi
-uvicorn
-python-multipart
-opencv-python-headless
-pytesseract
-```
+## Tecnologías Utilizadas
 
-`main.py`: punto de entrada para tu aplicación.
+[Volver arriba](#)
 
-`utils/`: carpeta que contiene módulos de utilidad para tu aplicación.
+Este proyecto utiliza las siguientes tecnologías y herramientas:
 
-## 2. Construir y ejecutar el contenedor
+### **Backend**
 
-Construir la imagen:
+- **[FastAPI](https://fastapi.tiangolo.com/)**: Framework rápido y moderno para construir APIs con Python, basado en los estándares de OpenAPI.
+- **[Python](https://www.python.org/)**: Lenguaje de programación utilizado para implementar la lógica de OCR, scraping y el backend.
 
-```bash
-docker build -t data-extractor .
-```
+### **OCR (Reconocimiento Óptico de Caracteres)**
 
-Ejecutar el contenedor:
+- **[Tesseract OCR](https://github.com/tesseract-ocr/tesseract)**: Herramienta de código abierto para el reconocimiento de texto en imágenes.
+- **[Pytesseract](https://pypi.org/project/pytesseract/)**: Wrapper de Python para interactuar con Tesseract OCR.
+- **[OpenCV](https://opencv.org/)**: Librería para procesamiento de imágenes, utilizada para preprocesar las imágenes antes de aplicar OCR.
 
-```bash
-docker run -d -p 8000:8000 data-extractor
-```
+### **Web Scraping**
 
-Si usas (en este caso si) `docker-compose`:
+- **[BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)**: Herramienta poderosa para analizar documentos HTML y extraer datos estructurados.
+- **[Requests](https://docs.python-requests.org/)**: Librería HTTP para realizar solicitudes GET y obtener datos de páginas web.
 
-```bash
-docker-compose up -d
-```
+### **Despliegue**
 
-```bash
-## Para parar y borrar un contenedor de Docker:
+- **[Docker](https://www.docker.com/)**: Herramienta de contenedores utilizada para empaquetar y desplegar la aplicación de manera consistente en cualquier entorno.
 
-## Lista de contenedores, de donde sacaremos el ID del contenedor que nos interesa
-docker ps a
+### **Logging**
 
-## Parar el contenedor
-docker stop ID_CONTENEDOR
+- **[Logging (módulo estándar de Python)](https://docs.python.org/3/library/logging.html)**: Módulo para registrar información y errores durante la ejecución de la API.
 
-## Borrar la contenedor
-docker rm ID_CONTENEDOR
-```
+### **Extras**
 
-## 3. Probar en Postman
+- **[Uvicorn](https://www.uvicorn.org/)**: Servidor ASGI rápido y ligero para ejecutar aplicaciones FastAPI.
 
-Abre Postman y, con el contenedor corriendo:
+## Requisitos
 
-- Haz una petición `POST` a `localhost:8000/extract_text` con una imagen adjunta en el formulario:
-- Ve a la pestaña Body y selecciona form-data.
-- Añade un campo con `Key: file` y en `Value: Haz clic en "Select File" y elige una imagen de tu sistema`.
-- Envía la solicitud y revisa la respuesta.
+[Volver arriba](#)
 
-## 4. Agregar Español a la configuración de Tesseract
+Asegúrate de tener instalados los siguientes elementos:
 
-### 4.1 Pasos para la instalación
+- Python 3.9 o superior
+- Tesseract OCR (requerido para la funcionalidad OCR)
 
-- Abre la terminal de tu sistema operativo y ejecuta:
-
-  ```bash
-  docker ps
-  ```
-
-Esto te listará los contenedores. Busca el nombre del contenedor que neccesitas. Ejemplo del resultado:
+Instala las dependencias de Python desde `requirements.txt`:
 
 ```bash
-CONTAINER ID   IMAGE               COMMAND                  CREATED          STATUS          PORTS                  NAMES
-abcdef123456   data-extractor   "uvicorn main:app --…"   10 minutes ago   Up 10 minutes   0.0.0.0:8000->8000/tcp    de-container
+pip install -r requirements.txt
 ```
 
-De aquí obtenemos el nombre `de-container`.
+## Configuración y Uso
 
-- Accede al contenedor. Ahora que sabes el nombre del contenedor, usa este comando para abrir una terminal dentro de él:
+[Volver arriba](#)
+
+1. Clona el Repositorio
 
 ```bash
-docker exec -it de-container /bin/bash
+git clone <url-del-repositorio>
+cd <carpeta-del-proyecto>
 ```
 
-Este comando abrirá una sesión interactiva dentro del contenedor, como si estuvieras en una máquina Linux.
-
-- Dentro del contenedor, descarga los datos necesarios para el idioma español en Tesseract:
+2. Instala las Dependencias. Si decides no usar Docker, instala las dependencias manualmente:
 
 ```bash
-apt-get update && apt-get install -y tesseract-ocr-spa
+Copiar código
+pip install -r requirements.txt
 ```
 
-- Sigue en la terminal del contenedor y verifica que el idioma español esté instalado:
+3. Ejecuta la Aplicación localmente. Utiliza uvicorn para ejecutar la aplicación FastAPI:
 
 ```bash
-tesseract --list-langs
+uvicorn main:app --reload
 ```
 
-- Sal del contenedor: Una vez hecho, escribe `exit` para salir de la terminal del contenedor y volver a la terminal de tu sistema.
+4. Ejecuta la Aplicación con Docker
+   Si prefieres usar Docker, sigue estos pasos:
 
-- Ve al archivo `ocr.py` y agrega los idiomas que usarás. Por ejemplo: -l spa+eng.
+   1. Construye la Imagen de Docker
 
-```diff
-import pytesseract
-import cv2
+   ```bash
+   docker build -t nombre-del-proyecto .
+   ```
 
-def extract_text(image):
-++ custom_config = r'--oem 3 --psm 6 -l spa+eng'
-   return pytesseract.image_to_string(image, config=custom_config)
+   2. Ejecuta el Contenedor
+
+   ```bash
+   docker run -d -p 8000:8000 nombre-del-proyecto
+   ```
+
+La aplicación se ejecutará en `http://127.0.0.1:8000`.
+
+## Documentación de la API
+
+[Volver arriba](#)
+
+### Endpoints
+
+1. `OCR: /extract-text/ (POST)`
+
+- Descripción: Procesa una imagen subida y extrae el texto utilizando OCR.
+- Parámetro:
+  - file: Imagen en formato UploadFile.
+- Respuesta:
+
+```json
+{
+  "text": "Texto extraído de la imagen"
+}
 ```
 
-### 4.2 Qué debes hacer después de instalar el idioma dentro del contenedor
+2. `Scraping: /scrape/ (GET)`
 
-¿Requieres volver a ejecutar el build del contenedor? Depende:
+- Descripción: Realiza scraping en la URL proporcionada y extrae datos estructurados.
+- Parámetro:
+  - url: La URL de la página web.
+- Respuesta:
 
-- Si hiciste cambios manuales (como instalar el idioma dentro del contenedor):
-
-  Los cambios realizados manualmente dentro del contenedor no son persistentes. Si detienes y vuelves a iniciar el contenedor, perderás esos cambios.
-
-  Para que los cambios sean permanentes añade los comandos de instalación de Tesseract y del idioma español en el archivo Dockerfile:
-
-  ```python
-  RUN apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-spa
-  ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/
-  ```
-
-  Luego, reconstruye la imagen del contenedor:
-
-  ```bash
-  docker-compose up --build
-  ```
-
-- Si no necesitas persistencia inmediata:
-
-  Puedes seguir usando el contenedor actual, ya que los cambios que hiciste manualmente seguirán funcionando mientras el contenedor no se detenga.
-
-  Para mantener el contenedor corriendo:
-
-  - No lo bajes con `docker-compose down`.
-
-  - Solo detén temporalmente el contenedor si necesitas reiniciar algo con:
-
-  ```bash
-  docker-compose stop
-  ```
-
-  - Y vuélvelo a iniciar con:
-
-  ```bash
-  docker-compose start
-  ```
-
-Si bajas el contenedor (por ejemplo, con docker-compose down), perderás los cambios manuales que hiciste dentro de él. Por eso, la mejor práctica es agregar los cambios al Dockerfile y reconstruir el contenedor. Esto garantiza que los cambios estén reflejados en la imagen y sean persistentes.
-
-### 4.3 Error en la ubicación de archivos de idiomas de Tesseract
-
-Ejemplo de error al probar el endpoint de OCR:
-
-```bash
-| pytesseract.pytesseract.TesseractError: (1, 'Error opening data file /usr/share/tesseract-ocr/4.00/spa.traineddata Please make sure the TESSDATA_PREFIX environment variable is set to your "tessdata" directory. Failed loading language \'spa\' Tesseract couldn\'t load any languages! Could not initialize tesseract.')
+```json
+{
+  "titles": ["Título 1", "Título 2"],
+  "paragraphs": ["Párrafo 1", "Párrafo 2"],
+  "images": ["url-imagen1.jpg", "url-imagen2.png"],
+  "links": ["http://enlace1.com", "http://enlace2.com"],
+  "tables": [
+    ["Celda1", "Celda2"],
+    ["Celda3", "Celda4"]
+  ]
+}
 ```
 
-Este error ocurre porque, a pesar de haber configurado la variable TESSDATA_PREFIX, Tesseract no encuentra el archivo de datos del idioma español (spa.traineddata) en la ubicación esperada. Aquí está cómo resolverlo paso a paso:
+## ¿Por qué usar Python en lugar de NestJS?
 
-1. Verifica la ubicación real de los archivos `*.traineddata`
+[Volver arriba](#)
 
-- Accede al contenedor Docker:
+1. **Procesamiento de Imágenes (OCR)**:
 
-```bash
-docker exec -it de-container /bin/bash
-```
+   - Python cuenta con librerías maduras y bien soportadas para procesamiento de imágenes y OCR, como `OpenCV` y `pytesseract`.
+   - Estas herramientas están diseñadas para integrarse fácilmente con scripts en Python y ofrecen un rendimiento robusto en tareas de procesamiento de datos.
 
-- Busca dónde están los archivos de idioma instalados:
+2. **Web Scraping**:
 
-```bash
-find / -name "spa.traineddata"
-```
+   - Python es reconocido por sus librerías especializadas para web scraping, como `BeautifulSoup` y `requests`, que hacen que estas tareas sean más simples y menos propensas a errores.
+   - NestJS, al ser más orientado al backend web, no tiene tantas herramientas dedicadas para web scraping como Python.
 
-Este comando buscará el archivo `spa.traineddata` en todo el sistema de archivos del contenedor. Algunas ubicaciones comunes son:
+3. **Simplicidad y Productividad**:
 
-/usr/share/tesseract-ocr/4.00/tessdata/
-/usr/local/share/tessdata/
-Anota la ruta exacta donde se encuentra spa.traineddata.
+   - Python permite implementar soluciones de manera rápida y concisa, especialmente en proyectos pequeños como esta API.
+   - La curva de aprendizaje para las librerías mencionadas es mucho más corta en Python que configurar herramientas equivalentes en NestJS.
 
-2. Ajusta la variable TESSDATA_PREFIX
+4. **Facilidad para Integración con Tesseract**:
 
-Con la ubicación exacta de spa.traineddata, actualiza la variable de entorno `TESSDATA_PREFIX`.
+   - Tesseract OCR se integra de manera nativa con Python mediante `pytesseract`, lo que facilita la implementación del reconocimiento óptico de caracteres.
 
-Si estás en el contenedor, configúrala temporalmente:
+5. **Naturaleza del Proyecto**:
+   - Este proyecto se centra más en procesamiento de datos y menos en la estructura compleja de un backend escalable, donde NestJS sería más apropiado.
+   - Python es ideal para proyectos rápidos y específicos que requieren muchas herramientas listas para usar.
 
-```bash
-export TESSDATA_PREFIX=/ruta/encontrada/tessdata/
-#Reemplaza /ruta/encontrada/tessdata/ con la ruta real que obtuviste en el paso anterior.
-```
+## Contribuciones
 
-Verifica que Tesseract puede listar los idiomas:
+[Volver arriba](#)
 
-```bash
-tesseract --list-langs
-#Si ves spa, significa que ya está configurado correctamente.
-```
+Si deseas contribuir al proyecto, por favor abre un pull request o crea un issue para discutir los cambios. Igualmente si tienes competarios para mejorar la app, estoy abierta a sugerencias. ¡Gracias por tu interés!
 
-3. Hacer la configuración persistente
-   Para que esta configuración sea permanente y no tengas que configurarla manualmente cada vez, actualiza tu archivo `Dockerfile` con la ruta correcta.
+## Licencia
 
-Abre tu Dockerfile y edita la línea ENV TESSDATA_PREFIX:
+[Volver arriba](#)
 
-```dockerfile
-ENV TESSDATA_PREFIX=/ruta/encontrada/tessdata/
-```
-
-Reconstruye el contenedor:
-
-```bash
-docker-compose up --build
-```
-
-## 5. Agregar endpoint para Web Scraping
-
-Vamos a integrar un web scraping al backend usando `BeautifulSoup` (de la biblioteca `bs4`).
-
-1. Instalar las dependencias necesarias
-
-Abre tu archivo `requirements.txt` y añade las siguientes líneas al final:
-
-```text
-beautifulsoup4
-requests
-```
-
-2. Crear un archivo para el scraping
-
-En la carpeta utils de tu proyecto, crea un archivo nuevo llamado `scraping.py`.
-
-```python
-import requests
-from bs4 import BeautifulSoup
-
-def scrape_titles(url):
-    """
-    Extrae los títulos <h1> y <h2> de una página web dada.
-    """
-    try:
-        # Realiza la solicitud GET a la URL
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Lanza una excepción si hay un error HTTP
-
-        # Analiza el HTML con BeautifulSoup
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Encuentra todos los <h1> y <h2>
-        titles = [tag.get_text(strip=True) for tag in soup.find_all(['h1', 'h2'])]
-
-        return {"titles": titles}
-    except requests.RequestException as e:
-        return {"error": f"Error al obtener la página: {e}"}
-    except Exception as e:
-        return {"error": f"Error al procesar la página: {e}"}
-```
-
-3. Añadir el endpoint al backend
-
-- Abre tu archivo `main.py`.
-
-- Importa la función `scrape_titles` desde `utils/scraping.py`. Añade esta línea cerca de los otros imports:
-
-  ```python
-  from utils.scraping import scrape_titles
-  ```
-
-- Añade el nuevo endpoint al archivo main.py justo debajo de los otros endpoints:
-
-  ```python
-  @app.get("/scrape/")
-  def scrape(url: str):
-      """
-      Endpoint para hacer scraping y obtener títulos <h1> y <h2> de una página web.
-      """
-      result = scrape_titles(url)
-      if "error" in result:
-          raise HTTPException(status_code=400, detail=result["error"])
-      return result
-  ```
-
-4. Levantar el backend
-
-Guarda todos los cambios y ejecuta el siguiente comando para reconstruir tu contenedor con las nuevas dependencias:
-
-```bash
-docker-compose up --build
-```
-
-5. Probar el nuevo endpoint
-
-Usando Postman, configura una nueva solicitud:
-
-- Método: GET
-- URL: http://localhost:8000/scrape/?url=https://example.com
-- Haz clic en "Send" y revisa la respuesta.
+Este proyecto está bajo la licencia [MIT](./LICENSE).
