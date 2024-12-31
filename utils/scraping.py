@@ -4,11 +4,20 @@ from bs4 import BeautifulSoup
 def scrape_all(url):
     """
     Extrae contenido de una página web: títulos, párrafos, imágenes, enlaces y tablas.
+
+    Args:
+        url (str): URL de la página web a scrapear.
+
+    Returns:
+        dict: Diccionario con los datos extraídos de la página o un mensaje de error.
+
+    Raises:
+        Exception: Si ocurre un error durante la solicitud o procesamiento de la página.
     """
     try:
         # Realiza la solicitud GET a la URL
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()  # Lanza una excepción si hay un error HTTP
 
         # Analiza el HTML con BeautifulSoup
@@ -16,19 +25,26 @@ def scrape_all(url):
 
         # Extraer diferentes tipos de contenido
         data = {
-            "titles": [tag.get_text(strip=True) for tag in soup.find_all(['h1', 'h2', 'h3'])],
-            "paragraphs": [p.get_text(strip=True) for p in soup.find_all('p')],
+            "titles": [tag.get_text(strip=True) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])],
+            "paragraphs": [p.get_text(strip=True) for p in soup.find_all(['p', 'span'])],
             "images": [img['src'] for img in soup.find_all('img', src=True)],
             "links": [a['href'] for a in soup.find_all('a', href=True)],
             "tables": extract_tables(soup)
         }
 
         return data
-    except requests.RequestException as e:
-        return {"error": f"Error al obtener la página: {e}"}
-    except Exception as e:
-        return {"error": f"Error al procesar la página: {e}"}
 
+    except requests.exceptions.MissingSchema as e:
+        # URL inválida (por ejemplo, esquema faltante o incorrecto)
+        raise Exception(f"Error al obtener la página: Esquema inválido en la URL ({e})")
+
+    except requests.exceptions.RequestException as e:
+        # Otros errores relacionados con la solicitud HTTP
+        raise Exception(f"Error al realizar la solicitud HTTP: {e}")
+
+    except Exception as e:
+        # Errores generales durante el procesamiento de la página
+        raise Exception(f"Error al procesar la página: {e}")
 
 def extract_tables(soup):
     """

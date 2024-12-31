@@ -1,21 +1,28 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.api import router
 
-app = FastAPI()
-
-# Configuración del middleware CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Permitir cualquier origen (ajústalo en producción)
-    allow_credentials=True,
-    allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permitir todos los headers
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-# Incluir las rutas desde el módulo routes
+logger = logging.getLogger(__name__)
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(router)
 
 @app.get("/")
 def root():
+    logger.info("El endpoint raíz (/) fue llamado.")
     return {"message": "El backend está funcionando correctamente"}
