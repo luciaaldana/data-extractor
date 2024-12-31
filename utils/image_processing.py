@@ -1,16 +1,16 @@
 import cv2
 
 def preprocess_image(image):
-    # Convertir la imagen a escala de grises
+    # Convert the image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Aplicar desenfoque para reducir el ruido
+    # Apply blur to reduce noise
     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 
-    # Aplicar umbral binario
+    # Apply binary threshold
     _, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # Opcional: aplicar morfología para mejorar caracteres
+    # Apply morphology to enhance characters
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     processed_image = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
 

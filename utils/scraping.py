@@ -3,27 +3,27 @@ from bs4 import BeautifulSoup
 
 def scrape_all(url):
     """
-    Extrae contenido de una página web: títulos, párrafos, imágenes, enlaces y tablas.
+    Extracts content from a webpage: titles, paragraphs, images, links, and tables.
 
     Args:
-        url (str): URL de la página web a scrapear.
+        url (str): URL of the webpage to scrape.
 
     Returns:
-        dict: Diccionario con los datos extraídos de la página o un mensaje de error.
+        dict: Dictionary with the extracted data from the page or an error message.
 
     Raises:
-        Exception: Si ocurre un error durante la solicitud o procesamiento de la página.
+        Exception: If an error occurs during the request or page processing.
     """
     try:
-        # Realiza la solicitud GET a la URL
+        # Perform a GET request to the URL
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
         response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Lanza una excepción si hay un error HTTP
+        response.raise_for_status()  # Raise an exception if there's an HTTP error
 
-        # Analiza el HTML con BeautifulSoup
+        # Parse the HTML with BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extraer diferentes tipos de contenido
+        # Extract different types of content
         data = {
             "titles": [tag.get_text(strip=True) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])],
             "paragraphs": [p.get_text(strip=True) for p in soup.find_all(['p', 'span'])],
@@ -35,31 +35,31 @@ def scrape_all(url):
         return data
 
     except requests.exceptions.MissingSchema as e:
-        # URL inválida (por ejemplo, esquema faltante o incorrecto)
-        raise Exception(f"Error al obtener la página: Esquema inválido en la URL ({e})")
+        # Invalid URL (e.g., missing or incorrect schema)
+        raise Exception(f"Error retrieving the page: Invalid schema in the URL ({e})")
 
     except requests.exceptions.RequestException as e:
-        # Otros errores relacionados con la solicitud HTTP
-        raise Exception(f"Error al realizar la solicitud HTTP: {e}")
+        # Other HTTP request-related errors
+        raise Exception(f"Error performing the HTTP request: {e}")
 
     except Exception as e:
-        # Errores generales durante el procesamiento de la página
-        raise Exception(f"Error al procesar la página: {e}")
+        # General errors during page processing
+        raise Exception(f"Error processing the page: {e}")
 
 def extract_tables(soup):
     """
-    Extrae las tablas de un objeto BeautifulSoup y devuelve sus filas y columnas.
+    Extracts tables from a BeautifulSoup object and returns their rows and columns.
     """
     tables = soup.find_all('table')
     extracted_tables = []
 
     for table in tables:
-        # Extraer las filas
+        # Extract the rows
         rows = table.find_all('tr')
         table_data = []
 
         for row in rows:
-            # Extraer las celdas (<th> o <td>)
+            # Extract cells (<th> or <td>)
             cells = row.find_all(['th', 'td'])
             row_data = [cell.get_text(strip=True) for cell in cells]
             table_data.append(row_data)

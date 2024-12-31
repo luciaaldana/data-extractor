@@ -12,54 +12,55 @@ router = APIRouter()
 @router.post("/extract-text/")
 async def extract_text_from_image(file: UploadFile = File(...)):
     """
-    Endpoint para procesar una imagen y extraer texto utilizando OCR.
+    Endpoint to process an image and extract text using OCR.
 
     Args:
-        file (UploadFile): Imagen proporcionada por el cliente.
+        file (UploadFile): Image provided by the client.
 
     Returns:
-        dict: Contiene el texto extraído de la imagen.
+        dict: Contains the text extracted from the image.
 
     Raises:
-        HTTPException: Si ocurre un error durante el procesamiento o extracción de texto.
+        HTTPException: If an error occurs during processing or text extraction.
     """
-    logger.info("Endpoint /extract-text llamado.")
+    logger.info("Endpoint /extract-text called.")
     try:
-        logger.info(f"Procesando archivo: {file.filename}")
+        logger.info(f"Processing file: {file.filename}")
 
         extracted_text = await process_and_extract_text(file)
 
-        logger.info(f"Texto extraído correctamente: {extracted_text[:50]}...")
+        logger.info(f"Text successfully extracted: {extracted_text[:50]}...")
         return {"text": extracted_text}
     except OCRProcessingError as e:
-        logger.error(f"Error durante el procesamiento OCR: {e.message}")
+        logger.error(f"Error during OCR processing: {e.message}")
         raise HTTPException(status_code=400, detail=e.message)
     except Exception as e:
-        logger.critical(f"Error inesperado durante el OCR: {str(e)}")
+        logger.critical(f"Unexpected error during OCR: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred during OCR.")
+
 
 @router.get("/scrape/")
 def scrape(url: str):
     """
-    Endpoint para realizar scraping en una página web.
+    Endpoint to perform scraping on a webpage.
 
     Args:
-        url (str): URL de la página web que se desea analizar.
+        url (str): URL of the webpage to analyze.
 
     Returns:
-        dict: Contiene el contenido relevante obtenido de la página web.
+        dict: Contains the relevant content obtained from the webpage.
 
     Raises:
-        HTTPException: Si ocurre un error durante el proceso de scraping.
+        HTTPException: If an error occurs during the scraping process.
     """
-    logger.info(f"Scraping iniciado para URL: {url}")
+    logger.info(f"Scraping started for URL: {url}")
     try:
         result = scrape_website(url)
-        logger.info(f"Scraping exitoso para URL: {url}")
+        logger.info(f"Scraping successful for URL: {url}")
         return result
     except ScrapingError as e:
-        logger.error(f"Error durante el scraping para URL {url}: {e.message}")
+        logger.error(f"Error during scraping for URL {url}: {e.message}")
         raise HTTPException(status_code=400, detail=e.message)
     except Exception as e:
-        logger.critical(f"Error inesperado durante el scraping para URL {url}: {str(e)}")
+        logger.critical(f"Unexpected error during scraping for URL {url}: {str(e)}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred during scraping.")

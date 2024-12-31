@@ -1,6 +1,6 @@
 class OCRProcessingError(Exception):
     """
-    Excepción personalizada para errores durante el procesamiento de OCR.
+    Custom exception for errors during the OCR processing.
     """
     def __init__(self, message: str = "An error occurred during the OCR process"):
         super().__init__(message)
@@ -8,7 +8,7 @@ class OCRProcessingError(Exception):
 
 class ScrapingError(Exception):
     """
-    Excepción personalizada para errores durante el proceso de scraping.
+    Custom exception for errors during the scraping process.
     """
     def __init__(self, message: str = "An error occurred during the scraping process"):
         super().__init__(message)

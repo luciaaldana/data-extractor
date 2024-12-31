@@ -6,40 +6,40 @@ import logging
 logger = logging.getLogger(__name__)
 
 def validate_url(url: str):
-    logger.debug(f"Validando la URL: {url}")
+    logger.debug(f"Validating URL: {url}")
     parsed = urlparse(url)
 
-    # Verificar que tenga un esquema válido (http o https) y un dominio
+    # Verify that it has a valid scheme (http or https) and a domain
     if parsed.scheme not in ["http", "https"] or not parsed.netloc:
-        logger.warning(f"URL no válida detectada: {url}")
+        logger.warning(f"Invalid URL detected: {url}")
         raise ScrapingError("The provided URL is not valid")
 
 def scrape_website(url: str):
     """
-    Realiza el scraping de una página web dada.
+    Performs scraping on a given webpage.
 
     Args:
-        url (str): URL de la página web que se desea analizar.
+        url (str): URL of the webpage to analyze.
 
     Returns:
-        dict: Contenido relevante extraído de la página web.
+        dict: Relevant content extracted from the webpage.
 
     Raises:
-        ScrapingError: Si ocurre un error en el proceso de scraping.
+        ScrapingError: If an error occurs during the scraping process.
     """
     try:
-        logger.info(f"Iniciando scraping para URL: {url}")
+        logger.info(f"Starting scraping for URL: {url}")
         
         validate_url(url)
-        logger.debug(f"Validación completada para URL: {url}")
+        logger.debug(f"Validation completed for URL: {url}")
         
         result = scrape_all(url)
-        logger.info(f"Scraping completado con éxito para URL: {url}")
+        logger.info(f"Scraping successfully completed for URL: {url}")
         return result
 
     except ScrapingError as e:
-        logger.error(f"Error durante el scraping para URL {url}: {e.message}")
+        logger.error(f"Error during scraping for URL {url}: {e.message}")
         raise
     except Exception as e:
-        logger.error(f"Error inesperado durante el scraping para URL {url}: {str(e)}")
+        logger.error(f"Unexpected error during scraping for URL {url}: {str(e)}")
         raise ScrapingError(f"Unexpected error during scraping: {str(e)}")

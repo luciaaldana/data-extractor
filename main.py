@@ -24,5 +24,5 @@ app.include_router(router)
 
 @app.get("/")
 def root():
-    logger.info("El endpoint raíz (/) fue llamado.")
-    return {"message": "El backend está funcionando correctamente"}
+    logger.info("The root endpoint (/) was called.")
+    return {"message": "The backend is running correctly"}
