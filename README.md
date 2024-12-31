@@ -143,7 +143,7 @@ uvicorn main:app --reload
    docker run -d -p 8000:8000 nombre-del-proyecto
    ```
 
-La aplicación se ejecutará en `http://127.0.0.1:8000`.
+La aplicación se ejecutará en `http://localhost:8000`.
 
 ## Documentación de la API
 
